@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>The Missing Director</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1EC; --surface:#FFFFFF; --surface-alt:#E3E8E2; --ink:#10201A; --ink-dim:#4B5B54;
+    --accent:#1E8F5E; --accent-strong:#0F6B45; --alert:#C23B2E; --gold:#8A6A1D; --border:#C7D0C9;
+    --tier1:#7C8C84; --tier2:#2E9E6D; --tier3:#1E8F5E; --tier4:#8A6A1D;
+    --glow:none; --scan-op:.03;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0A0F0D; --surface:#121B17; --surface-alt:#182420; --ink:#E7F3EC; --ink-dim:#93A79C;
+      --accent:#45FFA0; --accent-strong:#7CFFC0; --alert:#FF6B5E; --gold:#F0C05A; --border:#24352C;
+      --tier1:#5B6B63; --tier2:#2FBF87; --tier3:#45FFA0; --tier4:#F0C05A;
+      --glow:0 0 18px rgba(69,255,160,.22); --scan-op:.05;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0A0F0D; --surface:#121B17; --surface-alt:#182420; --ink:#E7F3EC; --ink-dim:#93A79C;
+    --accent:#45FFA0; --accent-strong:#7CFFC0; --alert:#FF6B5E; --gold:#F0C05A; --border:#24352C;
+    --tier1:#5B6B63; --tier2:#2FBF87; --tier3:#45FFA0; --tier4:#F0C05A;
+    --glow:0 0 18px rgba(69,255,160,.22); --scan-op:.05;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-sans,'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif);
+    min-height:100vh; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{max-width:560px;margin:0 auto;padding:20px 16px 56px;}
+  .font-mono{font-family:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;}
+  h1,h2,h3{text-wrap:balance;margin:0;}
+  p{margin:0;}
+  .hidden{display:none !important;}
+
+  /* header */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .wordmark{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;letter-spacing:.06em;}
+  .wordmark small{display:block;font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;margin-top:2px;}
+  .iconbtn{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;
+    background:var(--surface);border:1px solid var(--border);color:var(--ink);
+    padding:8px 12px;border-radius:6px;cursor:pointer;text-transform:uppercase;
+  }
+  .iconbtn:hover{border-color:var(--accent);color:var(--accent-strong);}
+  .iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* rank ladder */
+  .ladder{display:flex;align-items:center;margin:0 0 20px;}
+  .ladder .node{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+  .ladder .dot{width:14px;height:14px;border-radius:50%;background:var(--surface-alt);border:2px solid var(--border);}
+  .ladder .node.done .dot{background:var(--tier-color);border-color:var(--tier-color);}
+  .ladder .node.now .dot{background:var(--tier-color);border-color:var(--tier-color);box-shadow:var(--glow);}
+  .ladder .bar{position:absolute;top:6px;left:-50%;width:100%;height:2px;background:var(--border);z-index:-1;}
+  .ladder .node:first-child .bar{display:none;}
+  .ladder .node.done .bar,.ladder .node.now .bar{background:var(--tier-color);}
+  .ladder .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
+  .ladder .node.now .label,.ladder .node.done .label{color:var(--ink);}
+
+  /* console card */
+  .console{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:20px;position:relative;overflow:hidden;
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+  }
+  .console::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,var(--scan-op)) 0 1px,transparent 1px 3px);
+  }
+  .console-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:8px;flex-wrap:wrap;}
+  .console-head .status{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier-color,var(--accent));}
+  .console-head .rank{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);}
+  .briefing{font-size:15px;color:var(--ink);margin-bottom:16px;}
+  .verse{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;margin-bottom:16px;padding:12px 14px;background:var(--surface-alt);border-left:3px solid var(--tier-color,var(--accent));border-radius:4px;}
+
+  /* memo / physical-prop card */
+  .memo{
+    background:var(--surface-alt);border:1px dashed var(--border);border-radius:6px;
+    padding:14px 16px;margin-bottom:16px;position:relative;
+  }
+  .memo .stamp{
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:10px;letter-spacing:.1em;
+    color:var(--alert);border:1.5px solid var(--alert);border-radius:3px;padding:2px 8px;
+    display:inline-block;transform:rotate(-3deg);margin-bottom:8px;
+  }
+  .memo p{font-size:13.5px;color:var(--ink-dim);}
+  .memo ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--ink-dim);}
+  .memo li{margin-bottom:4px;}
+  .memo li b{color:var(--ink);}
+
+  /* LV1 grid */
+  .grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-width:320px;margin:0 auto 16px;}
+  .grid6 .cell{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;
+    background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;color:var(--ink);
+  }
+
+  .rule{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:10px 0 16px;color:var(--ink);}
+
+  /* input */
+  .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px;}
+  .field .row{display:flex;gap:8px;}
+  input[type=text]{
+    flex:1;font-family:'IBM Plex Mono',monospace;font-size:16px;letter-spacing:.03em;
+    background:var(--bg);border:1.5px solid var(--border);border-radius:6px;color:var(--ink);
+    padding:12px 12px;text-transform:uppercase;min-width:0;
+  }
+  input[type=text]:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);}
+  .btn{
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.05em;
+    background:var(--tier-color,var(--accent));color:var(--surface);border:none;border-radius:6px;
+    padding:0 18px;cursor:pointer;text-transform:uppercase;
+  }
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .btn.secondary{background:transparent;border:1.5px solid var(--border);color:var(--ink);}
+
+  .feedback{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:10px 12px;border-radius:6px;}
+  .feedback.error{background:color-mix(in srgb, var(--alert) 12%, transparent);color:var(--alert);animation:shake .3s;}
+  .feedback.success{background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--accent-strong);}
+  @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+  @media (prefers-reduced-motion: reduce){.feedback.error{animation:none;}}
+
+  .footnote{margin-top:16px;font-size:12.5px;color:var(--ink-dim);font-style:italic;}
+
+  /* team select */
+  .teamcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;text-align:center;}
+  .teamcard h2{font-family:'IBM Plex Mono',monospace;font-size:18px;margin-bottom:6px;}
+  .teamcard p{color:var(--ink-dim);font-size:14px;margin-bottom:18px;}
+  .resume{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+  .resume p{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:10px;}
+  .chiplist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--surface-alt);
+    border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--ink);
+  }
+  .chip:hover{border-color:var(--accent);}
+
+  .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-bottom:14px;text-align:right;}
+  .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;}
+
+  /* bridge / final */
+  .bridge{text-align:center;}
+  .bridge .badge{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;
+    letter-spacing:.1em;color:var(--tier-color);border:1.5px solid var(--tier-color);border-radius:20px;
+    padding:5px 16px;margin-bottom:14px;text-transform:uppercase;
+  }
+  .bridge h2{font-family:'IBM Plex Mono',monospace;font-size:17px;margin-bottom:12px;}
+  .bridge p{color:var(--ink);font-size:14.5px;margin-bottom:20px;text-align:left;}
+  .prize{background:color-mix(in srgb, var(--gold) 16%, transparent);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:16px;}
+
+  /* leaderboard */
+  .lbrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+  .lbrow:last-child{border-bottom:none;}
+  .lbname{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;}
+  .lbrank{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;}
+  .lbtime{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:12px;color:var(--ink-dim);text-align:right;}
+  .segbar{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;height:5px;}
+  .seg{border-radius:2px;background:var(--surface-alt);}
+  .seg.on{background:var(--tier-color);}
+  .empty{text-align:center;color:var(--ink-dim);font-size:13px;padding:30px 0;}
+
+  .admin{margin-top:26px;padding-top:16px;border-top:1px dashed var(--border);text-align:center;}
+  .admin summary{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);cursor:pointer;letter-spacing:.05em;text-transform:uppercase;}
+  .admin .btn{margin-top:10px;background:var(--alert);}
+
+  .footer{text-align:center;margin-top:28px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase;}
+  .status-pill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);text-align:center;margin-top:10px;}
+</style>
+</head>
+<body>
+<div id="app"><div class="status-pill">Booting terminal…</div></div>
+<script>
+(function(){
+  "use strict";
+
+  var API_URL = "https://script.google.com/macros/s/AKfycbxL1xYtcoHf8-OJ3F3ia3ju5DDfP-LzYG20Iu3KB3_r7v6wqJjudcBiJQm6YLtKNINcaw/exec";
+  var POLL_MS = 3000;
+
+  var HASHES = {
+    1: "ec4d372a8d13184e79d303d9c207eed18816e770479c9956c392d5ebf0f29d67",
+    2: "46e67c525617663b392a53c0e94ba79e62db62a851fb175ae87756d4e73c9718",
+    3: "875d65840f6f360a64a737eb3c520a7e22bc1e3316ce5e61710b652bec16ec34",
+    4: "bcb64e9c3e5165e2c29d77fbfb133b5fc3e7d3e2be50f782769e5202db0be148"
+  };
+
+  var LEVELS = {
+    1: {
+      rank: "Intern", tier: 1, status: "INTERN LEVEL — LOCKED", inputLabel: "Override Code",
+      briefing: "An urgent alert just hit the Director's terminal: he's vanished without a trace. Find the CONFIDENTIAL envelope hidden at his desk, lay its stencil over the grid below, and read what it reveals.",
+      grid: [["A","R","K","P","T","L"],["X","3","Q","T","M","W"],["D","7","O","E","W","C"],["P","Z","Q","V","1","S"],["H","K","F","G","Q","Z"],["Y","2","P","K","5","0"]],
+      footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
+      bridgeBadge: "Probation passed",
+      bridgeTitle: "You are now an Intern Consultant",
+      bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show he recently audited four major company tools before disappearing. Seek the sacred corners where productivity goes to replenish when the afternoon slump hits — the ultimate battleground where healthy options and guilty pleasures live side by side."
+    },
+    2: {
+      rank: "Junior", tier: 2, status: "JUNIOR LEVEL — LOCKED", inputLabel: "4-Digit Passcode",
+      briefing: "The snack drawer holds four company tools, each stamped with a hidden 4-digit number. Deduce the Director's weekly workflow order below, then apply the transformation rule to each app's number in that order.",
+      clues: [
+        "Google Chat team syncs happen <b>after</b> checking staffing assignments on Artefactory.",
+        "Submitting timesheets on Everwin is <b>always the final step</b> before the weekend.",
+        "Booking time off on Simployer must happen <b>before</b> checking Artefactory."
+      ],
+      rule: "Passcode digit = (sum of the outer 2 digits) − (sum of the inner 2 digits), for each app's number in sequence.",
+      footnote: "",
+      bridgeBadge: "Senior promotion granted",
+      bridgeTitle: "Spot on — 2017",
+      bridgeBody: "2017 is the year the international Artefact Group was created through the merger with Netbooster. You've proven your mastery over company history and daily workflows — workflows tamed, process aligned. You're officially Senior Rank. To reach the Senior Terminal, find this truth: wisdom is not written on walls — it rests quietly beneath the seat of the seeker."
+    },
+    3: {
+      rank: "Senior", tier: 3, status: "SENIOR LEVEL — LOCKED", inputLabel: "11-Character Passcode",
+      briefing: "STEP 1 — Resolve the unknown 'X': I hide inside the word that means to labor for a wage, and again inside the word that means the room where such labor is done, and a third time inside the word that names the reason you gather here tonight. Three times I appear, three times unnoticed. Locate this letter on the 5×5 matrix at the wheel's center — that's your starting coordinate.",
+      clues: [
+        "<b>\"CLIENT TRUST\"</b> → windows 1, 2*, 3, 4",
+        "<b>\"ALWAYS A WAY\"</b> → windows 5*, 6, 7",
+        "<b>\"WE LEARN EVERYDAY\"</b> → windows 8, 9*, 10"
+      ],
+      rule: "Signal modifier — blue window: data stream normal. Red window (marked *): data stream inverted. Turn the wheel through each core value in sequence and read off the windows.",
+      footnote: "",
+      bridgeBadge: "Senior clearance verified",
+      bridgeTitle: "You've cracked the system",
+      bridgeBody: "You've claimed the codes. On paper, you're ready for Director — but rank isn't decrypted, it's defended. Return to where your very first door opened at Artefact, where every new face is welcomed before they belong. Find Stormy there. Only when Stormy signs off will the final Director hint be released."
+    },
+    4: {
+      rank: "Director", tier: 4, status: "C-SUITE — LOCKED", inputLabel: "Director Command",
+      verse: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
+      briefing: "Collect the six clue slips hidden in the meeting booths named above, then find the cipher key and worksheet tucked inside “It Ends with Us” on the office bookshelf. Map every collected character into position to reveal where the Director is hiding.",
+      footnote: "",
+      bridgeBadge: "Case closed",
+      bridgeTitle: "You've found the Missing Director",
+      bridgeBody: "Head to the room you just decoded and toast the new leadership."
+    }
+  };
+
+  var APP_EL = document.getElementById("app");
+
+  var state = { teams: {} };
+  var apiStatus = "connecting"; // connecting | ready | error
+  var busy = false;
+  var view = "auto"; // auto | leaderboard
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function normalize(s){ return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+
+  function sha256Hex(str){
+    var enc = new TextEncoder().encode(str);
+    return crypto.subtle.digest("SHA-256", enc).then(function(buf){
+      var bytes = new Uint8Array(buf), hex = "";
+      for (var i = 0; i < bytes.length; i++){ hex += bytes[i].toString(16).padStart(2, "0"); }
+      return hex;
+    });
+  }
+
+  var memoryTeam = ""; // in-memory fallback for when storage access throws/is blocked
+  function myTeamName(){ try { return localStorage.getItem("domibo_team") || memoryTeam; } catch(e){ return memoryTeam; } }
+  function setMyTeamName(n){ memoryTeam = n; try { localStorage.setItem("domibo_team", n); } catch(e){} }
+  function clearMyTeamName(){ memoryTeam = ""; try { localStorage.removeItem("domibo_team"); } catch(e){} }
+
+  function getTeam(st, name){
+    return (st.teams && st.teams[name]) || { level: 1, history: [] };
+  }
+
+  function cloneState(st){ return JSON.parse(JSON.stringify(st)); }
+
+  function tierColorVar(tier){
+    return "var(--tier" + tier + ")";
+  }
+
+  // --- backend sync (Google Apps Script Web App over a Google Sheet) ---
+
+  function mergeServerState(serverState){
+    var merged = serverState && serverState.teams ? cloneState(serverState) : { teams: {} };
+    var myTeam = myTeamName();
+    if (myTeam && state.teams && state.teams[myTeam]){
+      var mine = state.teams[myTeam];
+      var theirs = merged.teams[myTeam];
+      if (!theirs || (theirs.level || 0) < (mine.level || 0)){
+        merged.teams[myTeam] = mine; // keep our optimistic update until the server catches up
+      }
+    }
+    return merged;
+  }
+
+  function fetchState(){
+    return fetch(API_URL, { method: "GET" })
+      .then(function(res){ if (!res.ok) throw new Error("bad status"); return res.json(); })
+      .then(function(data){
+        state = mergeServerState(data);
+        apiStatus = "ready";
+        render();
+      })
+      .catch(function(){
+        apiStatus = "error";
+        render();
+      });
+  }
+
+  function postAction(body){
+    return fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      if (!res.ok) throw new Error("bad status");
+      return res.json();
+    });
+  }
+
+  function startPolling(){
+    fetchState();
+    setInterval(fetchState, POLL_MS);
+  }
+
+  // --- game actions ---
+
+  function submitTeamName(name){
+    name = (name || "").trim().slice(0, 40);
+    if (!name) return;
+    setMyTeamName(name);
+    if (!(state.teams && state.teams[name])){
+      var newState = cloneState(state);
+      if (!newState.teams) newState.teams = {};
+      var history = [{level: 1, at: new Date().toISOString()}];
+      newState.teams[name] = { level: 1, history: history };
+      state = newState;
+      render();
+      postAction({ action: "upsert", team: name, level: 1, history: history })
+        .catch(function(){ window.__domiboLastError = "Couldn't save your team — check your connection and try again."; render(); });
+    } else {
+      render();
+    }
+  }
+
+  function submitAnswer(levelNum, raw){
+    var team = myTeamName();
+    if (!team || busy) return;
+    busy = true; window.__domiboLastError = null; render();
+    var norm = normalize(raw);
+    sha256Hex(norm).then(function(hex){
+      busy = false;
+      if (hex !== HASHES[levelNum]){
+        window.__domiboLastError = "ACCESS DENIED — that code doesn't match. Double-check the physical clue and try again.";
+        render();
+        return;
+      }
+      var t = getTeam(state, team);
+      if (t.level !== levelNum){ render(); return; } // stale UI guard
+      var toLevel = levelNum + 1;
+      var history = (t.history||[]).concat([{level: toLevel, at: new Date().toISOString()}]);
+      var newState = cloneState(state);
+      if (!newState.teams) newState.teams = {};
+      newState.teams[team] = { level: toLevel, history: history };
+      try { sessionStorage.setItem("domibo_pending", JSON.stringify({team: team, toLevel: toLevel})); } catch(e){}
+      state = newState;
+      render();
+      postAction({ action: "upsert", team: team, level: toLevel, history: history })
+        .catch(function(){ window.__domiboLastError = "Saved locally, but couldn't sync to the leaderboard — check your connection."; render(); });
+    });
+  }
+
+  function resetAll(){
+    state = { teams: {} };
+    clearMyTeamName();
+    render();
+    postAction({ action: "reset" }).then(fetchState).catch(function(){ fetchState(); });
+  }
+
+  function fmtElapsed(iso){
+    if (!iso) return "—";
+    var s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime())/1000));
+    var m = Math.floor(s/60); var sec = s % 60;
+    return m + "m " + String(sec).padStart(2,"0") + "s ago";
+  }
+
+  function renderLadder(currentLevel){
+    var names = ["Intern","Junior","Senior","Director"];
+    var html = '<div class="ladder">';
+    for (var i=1;i<=4;i++){
+      var cls = i < currentLevel ? "done" : (i === currentLevel ? "now" : "");
+      html += '<div class="node ' + cls + '" style="--tier-color:' + tierColorVar(i) + '"><div class="bar"></div><div class="dot"></div><div class="label">' + names[i-1] + '</div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderTopbar(){
+    var html = '<div class="topbar"><div class="wordmark">THE MISSING DIRECTOR<small>Artefact Benelux · Promotion Assessment</small></div>';
+    html += '<button class="iconbtn" data-action="toggle-leaderboard">' + (view === "leaderboard" ? "Console" : "Leaderboard") + '</button></div>';
+    return html;
+  }
+
+  function renderTeamSelect(){
+    var names = Object.keys(state.teams || {});
+    var html = '<div class="teamcard">';
+    html += '<h2>IDENTIFY YOUR TEAM</h2><p>Enter your team name to unlock Level 1.</p>';
+    html += '<div class="field row"><input type="text" id="team-input" maxlength="40" placeholder="e.g. THE AUDITORS" autocomplete="off"><button class="btn" data-action="start-team">Enter</button></div>';
+    if (names.length){
+      html += '<div class="resume"><p>Or continue an existing team</p><div class="chiplist">';
+      names.forEach(function(n){ html += '<button class="chip" data-action="resume-team" data-team="' + esc(n) + '">' + esc(n) + '</button>'; });
+      html += '</div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderLevelExtras(lvl, def){
+    var html = "";
+    if (def.verse) html += '<div class="verse">' + esc(def.verse) + '</div>';
+    if (def.grid){
+      html += '<div class="grid6">';
+      def.grid.forEach(function(row){ row.forEach(function(c){ html += '<div class="cell">' + esc(c) + '</div>'; }); });
+      html += '</div>';
+    }
+    if (def.clues){
+      html += '<div class="memo"><span class="stamp">Field notes</span><ul>';
+      def.clues.forEach(function(c){ html += '<li>' + c + '</li>'; });
+      html += '</ul></div>';
+    }
+    if (def.rule){ html += '<div class="rule">' + def.rule + '</div>'; }
+    return html;
+  }
+
+  function renderLevel(levelNum){
+    var def = LEVELS[levelNum];
+    var err = window.__domiboLastError;
+    var html = '<div class="console" style="--tier-color:' + tierColorVar(def.tier) + '">';
+    html += '<div class="console-head"><span class="status">' + def.status + '</span><span class="rank">RANK: ' + def.rank.toUpperCase() + '</span></div>';
+    html += '<div class="briefing">' + esc(def.briefing) + '</div>';
+    html += renderLevelExtras(levelNum, def);
+    html += '<div class="field"><label>' + esc(def.inputLabel) + '</label><div class="row"><input type="text" id="answer-input" autocomplete="off" autocapitalize="characters" placeholder="ENTER CODE"><button class="btn" data-action="submit-answer" data-level="' + levelNum + '" ' + (busy?'disabled':'') + '>' + (busy ? "Checking…" : "Submit") + '</button></div></div>';
+    if (err){ html += '<div class="feedback error">' + esc(err) + '</div>'; }
+    if (def.footnote){ html += '<div class="footnote">' + esc(def.footnote) + '</div>'; }
+    html += '</div>';
+    return html;
+  }
+
+  function isFirstToFinish(team){
+    var teams = state.teams || {};
+    var myFinishAt = null;
+    var t = teams[team];
+    if (!t || t.level < 5) return false;
+    (t.history||[]).forEach(function(h){ if (h.level === 5) myFinishAt = h.at; });
+    if (!myFinishAt) return false;
+    var names = Object.keys(teams);
+    for (var i=0;i<names.length;i++){
+      if (names[i] === team) continue;
+      var o = teams[names[i]];
+      if (o.level >= 5){
+        var oAt = null;
+        (o.history||[]).forEach(function(h){ if (h.level === 5) oAt = h.at; });
+        if (oAt && oAt < myFinishAt) return false;
+      }
+    }
+    return true;
+  }
+
+  function renderBridgeOrFinal(levelJustSolved, team){
+    var def = LEVELS[levelJustSolved];
+    var isFinal = levelJustSolved === 4;
+    var html = '<div class="console bridge" style="--tier-color:' + tierColorVar(def.tier) + '">';
+    html += '<div class="badge">' + esc(def.bridgeBadge) + '</div>';
+    html += '<h2>' + esc(def.bridgeTitle) + '</h2>';
+    if (isFinal && isFirstToFinish(team)){
+      html += '<div class="prize">🏆 You’re the first team to finish — find Stormy to claim your prize!</div>';
+    }
+    html += '<p>' + esc(def.bridgeBody) + '</p>';
+    if (!isFinal){
+      html += '<button class="btn" data-action="continue-level" data-level="' + (levelJustSolved+1) + '">Continue →</button>';
+    } else {
+      html += '<button class="iconbtn" data-action="toggle-leaderboard">View leaderboard</button>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderLeaderboard(){
+    var teams = state.teams || {};
+    var names = Object.keys(teams);
+    var html = '<div class="console" style="--tier-color:var(--accent)"><div class="console-head"><span class="status">LIVE LEADERBOARD</span></div>';
+    if (!names.length){
+      html += '<div class="empty">No teams have started yet.</div>';
+    } else {
+      var rows = names.map(function(n){
+        var t = teams[n];
+        var lastAt = (t.history && t.history.length) ? t.history[t.history.length-1].at : null;
+        return {name:n, level:t.level, lastAt:lastAt};
+      });
+      rows.sort(function(a,b){
+        if (b.level !== a.level) return b.level - a.level;
+        if (!a.lastAt) return 1; if (!b.lastAt) return -1;
+        return a.lastAt < b.lastAt ? -1 : 1;
+      });
+      rows.forEach(function(r){
+        var rankLabel = r.level >= 5 ? "Director — Found him!" : (LEVELS[r.level] ? LEVELS[r.level].rank : "Intern");
+        html += '<div class="lbrow">';
+        html += '<div><div class="lbname">' + esc(r.name) + '</div><div class="lbrank">' + esc(rankLabel) + '</div></div>';
+        html += '<div class="lbtime">' + (r.lastAt ? fmtElapsed(r.lastAt) : "—") + '</div>';
+        html += '<div class="segbar">';
+        for (var i=1;i<=4;i++){
+          var on = r.level > i || r.level >= 5;
+          html += '<div class="seg ' + (on ? "on":"") + '" style="' + (on ? ("background:" + tierColorVar(Math.min(i,4))) : "") + '"></div>';
+        }
+        html += '</div></div>';
+      });
+    }
+    html += '<details class="admin"><summary>Facilitator tools</summary><button class="btn" data-action="arm-reset">Reset all teams</button></details>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderStatusNote(){
+    if (apiStatus === "connecting") return '<div class="status-pill">Connecting to the shared game state…</div>';
+    if (apiStatus === "error") return '<div class="status-pill">Having trouble syncing — check your connection. Your progress is saved locally and will sync once reconnected.</div>';
+    return "";
+  }
+
+  var resetArmed = false;
+
+  function render(){
+    var team = myTeamName();
+    var html = "";
+    html += renderTopbar();
+
+    if (view === "leaderboard"){
+      html += renderLeaderboard();
+      html += renderStatusNote();
+      APP_EL.innerHTML = html;
+      bind();
+      return;
+    }
+
+    if (!team){
+      html += renderTeamSelect();
+      html += renderStatusNote();
+      APP_EL.innerHTML = html;
+      bind();
+      return;
+    }
+
+    var t = getTeam(state, team);
+    html += '<div class="teamline">Team: <b>' + esc(team) + '</b> · <button data-action="switch-team">switch</button></div>';
+    html += renderLadder(Math.min(t.level, 4));
+
+    var pendingRaw = null;
+    try { pendingRaw = sessionStorage.getItem("domibo_pending"); } catch(e){}
+    var showBridge = false, bridgeLevel = null;
+    if (pendingRaw){
+      try {
+        var p = JSON.parse(pendingRaw);
+        if (p.team === team && t.level === p.toLevel){ showBridge = true; bridgeLevel = p.toLevel - 1; }
+      } catch(e){}
+    }
+
+    if (t.level >= 5){
+      html += renderBridgeOrFinal(4, team);
+    } else if (showBridge && bridgeLevel){
+      html += renderBridgeOrFinal(bridgeLevel, team);
+    } else {
+      html += renderLevel(t.level);
+    }
+    html += renderStatusNote();
+    APP_EL.innerHTML = html;
+    bind();
+  }
+
+  function bind(){
+    APP_EL.querySelectorAll("[data-action]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var action = el.getAttribute("data-action");
+        if (action === "start-team"){
+          var input = document.getElementById("team-input");
+          submitTeamName(input ? input.value : "");
+        } else if (action === "resume-team"){
+          setMyTeamName(el.getAttribute("data-team"));
+          render();
+        } else if (action === "switch-team"){
+          clearMyTeamName();
+          try { sessionStorage.removeItem("domibo_pending"); } catch(e){}
+          render();
+        } else if (action === "submit-answer"){
+          var ai = document.getElementById("answer-input");
+          submitAnswer(parseInt(el.getAttribute("data-level"), 10), ai ? ai.value : "");
+        } else if (action === "continue-level"){
+          try { sessionStorage.removeItem("domibo_pending"); } catch(e){}
+          render();
+        } else if (action === "toggle-leaderboard"){
+          view = view === "leaderboard" ? "auto" : "leaderboard";
+          render();
+        } else if (action === "arm-reset"){
+          if (!resetArmed){
+            resetArmed = true;
+            el.textContent = "Press again to confirm";
+            setTimeout(function(){ resetArmed = false; el.textContent = "Reset all teams"; }, 4000);
+          } else {
+            resetArmed = false;
+            resetAll();
+          }
+        }
+      });
+    });
+    var teamInput = document.getElementById("team-input");
+    if (teamInput){ teamInput.addEventListener("keydown", function(e){ if (e.key === "Enter") submitTeamName(teamInput.value); }); }
+    var answerInput = document.getElementById("answer-input");
+    if (answerInput){ answerInput.addEventListener("keydown", function(e){ if (e.key === "Enter") { var lvl = getTeam(state, myTeamName()).level; submitAnswer(lvl, answerInput.value); } }); }
+  }
+
+  render();
+  startPolling();
+})();
+</script>
+</body>
+</html>
