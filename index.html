@@ -190,7 +190,7 @@
   "use strict";
 
   var API_URL = "https://script.google.com/macros/s/AKfycbxL1xYtcoHf8-OJ3F3ia3ju5DDfP-LzYG20Iu3KB3_r7v6wqJjudcBiJQm6YLtKNINcaw/exec";
-  var POLL_MS = 3000;
+  var POLL_MS = 1000;
 
   var HASHES = {
     1: "ec4d372a8d13184e79d303d9c207eed18816e770479c9956c392d5ebf0f29d67",
@@ -302,18 +302,22 @@
     return merged;
   }
 
-  function isUserTyping(){
-    var a = document.activeElement;
-    return !!(a && (a.id === "team-input" || a.id === "answer-input"));
-  }
+  var hasRenderedFromServer = false;
 
-  // Polling re-renders the whole page via innerHTML, which would blur (and on
-  // mobile, dismiss the keyboard for) an input the user is actively typing
-  // into. Skip the redraw while they're typing; the next poll after they
-  // blur/submit picks up whatever changed meanwhile.
-  function renderUnlessTyping(){
-    if (isUserTyping()) return;
-    render();
+  // Polling re-renders the whole page via innerHTML, which would blow away
+  // (and on mobile, dismiss the keyboard for) an input the user is actively
+  // using. A focus check isn't reliable enough to guard against that —
+  // autocorrect/predictive-text/autocapitalize on mobile keyboards can shift
+  // focus away from the input for a moment in ways a poll can land in. The
+  // team-select and puzzle-answer screens only ever show *this* team's own
+  // progress anyway (never changes from another device), so there's no
+  // reason for polling to touch that DOM at all — only the leaderboard
+  // actually needs to redraw on every tick. Always render once on the very
+  // first successful fetch so the initial "resume an existing team" chip
+  // list is populated.
+  function renderIfNeeded(){
+    if (!hasRenderedFromServer){ hasRenderedFromServer = true; render(); return; }
+    if (view === "leaderboard") render();
   }
 
   function fetchState(){
@@ -322,11 +326,11 @@
       .then(function(data){
         state = mergeServerState(data);
         apiStatus = "ready";
-        renderUnlessTyping();
+        renderIfNeeded();
       })
       .catch(function(){
         apiStatus = "error";
-        renderUnlessTyping();
+        renderIfNeeded();
       });
   }
 
