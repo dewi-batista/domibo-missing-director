@@ -302,17 +302,31 @@
     return merged;
   }
 
+  function isUserTyping(){
+    var a = document.activeElement;
+    return !!(a && (a.id === "team-input" || a.id === "answer-input"));
+  }
+
+  // Polling re-renders the whole page via innerHTML, which would blur (and on
+  // mobile, dismiss the keyboard for) an input the user is actively typing
+  // into. Skip the redraw while they're typing; the next poll after they
+  // blur/submit picks up whatever changed meanwhile.
+  function renderUnlessTyping(){
+    if (isUserTyping()) return;
+    render();
+  }
+
   function fetchState(){
     return fetch(API_URL, { method: "GET" })
       .then(function(res){ if (!res.ok) throw new Error("bad status"); return res.json(); })
       .then(function(data){
         state = mergeServerState(data);
         apiStatus = "ready";
-        render();
+        renderUnlessTyping();
       })
       .catch(function(){
         apiStatus = "error";
-        render();
+        renderUnlessTyping();
       });
   }
 
