@@ -262,6 +262,7 @@
   }
 
   function normalize(s){ return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function normalizeTeamName(s){ return String(s || "").trim().slice(0, 40).toUpperCase(); }
 
   function sha256Hex(str){
     var enc = new TextEncoder().encode(str);
@@ -287,22 +288,125 @@
     return "var(--tier" + tier + ")";
   }
 
+  // --- durable write queue ---
+  //
+  // The backend (apps-script.gs) is the actual authority on level progress —
+  // it validates the answer itself and owns every timestamp, so a submit
+  // here is a *request*, not a fact, until the server confirms it. A failed
+  // or dropped POST must never silently and permanently lose a team's
+  // progress, so every attempted write is persisted to localStorage (not
+  // sessionStorage — this must survive a closed tab/app, not just a reload)
+  // before it's ever sent, and retried on every poll tick until the server's
+  // own reported level shows it's no longer needed.
+
+  var pendingWrite = loadPendingWrite();
+  var pendingWriteInFlight = false;
+
+  function loadPendingWrite(){
+    try { var raw = localStorage.getItem("domibo_pending_write"); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+  }
+  function savePendingWrite(pw){ try { localStorage.setItem("domibo_pending_write", JSON.stringify(pw)); } catch(e){} }
+  function clearPendingWrite(){ pendingWrite = null; try { localStorage.removeItem("domibo_pending_write"); } catch(e){} }
+
+  // Seed a synthetic optimistic entry for a not-yet-confirmed write so the
+  // right screen shows immediately (including right after a reload), rather
+  // than waiting on a network round trip.
+  function seedOptimisticFromPending(){
+    if (!pendingWrite) return;
+    if (!state.teams) state.teams = {};
+    var existing = state.teams[pendingWrite.team];
+    if (!existing || existing.level < pendingWrite.targetLevel){
+      var hist = (existing && existing.history || []).concat([{level: pendingWrite.targetLevel, at: new Date().toISOString()}]);
+      state.teams[pendingWrite.team] = { level: pendingWrite.targetLevel, history: hist };
+    }
+  }
+
+  function applyServerResult(team, res){
+    if (!state.teams) state.teams = {};
+    var existing = state.teams[team];
+    // Never let an arriving confirmation regress what's already shown: if a
+    // second submit fired while the first was still in flight (both allowed,
+    // since a superseded in-flight write's own .then still applies its result
+    // rather than silently dropping it — see sendPendingWrite), the SECOND
+    // one's optimistic/confirmed level can already be ahead of this OLDER
+    // response by the time it arrives.
+    if (existing && existing.level > res.level) return;
+    state.teams[team] = { level: res.level, history: res.history || [] };
+  }
+
+  function sendPendingWrite(){
+    if (!pendingWrite || pendingWriteInFlight) return;
+    pendingWriteInFlight = true;
+    var myPW = pendingWrite; // capture identity — the global slot can move on (e.g. a team switch) before this resolves
+    var team = myPW.team;
+    var body = myPW.type === "create-team"
+      ? { action: "create-team", team: team }
+      : { action: "advance", team: team, answer: myPW.answer };
+    postAction(body).then(function(res){
+      pendingWriteInFlight = false;
+      if (pendingWrite !== myPW){
+        // a different write has since become the current one — still record
+        // this team's confirmed result (don't lose it), just don't touch the
+        // pendingWrite slot/localStorage, which now belongs to that other write.
+        if (res && res.ok) applyServerResult(team, res);
+        render();
+        return;
+      }
+      if (res && res.ok){
+        applyServerResult(team, res);
+        clearPendingWrite();
+      } else if (res && res.error === "wrong answer"){
+        // state genuinely diverged from what this attempt assumed (e.g. answered
+        // from a stale screen) — drop the stale retry; the next poll's fetched
+        // state is the truth to show instead of re-attempting forever.
+        clearPendingWrite();
+      }
+      // any other failure: leave pendingWrite in place, the next poll retries it
+      render();
+    }).catch(function(){ pendingWriteInFlight = false; });
+  }
+
+  // Called after every successful poll with the RAW (pre-merge) server
+  // response: converge or retry. This must NOT look at the merged `state` —
+  // mergeServerState() overlays our own optimistic guess back on top of
+  // whatever the server actually said whenever the server hasn't caught up
+  // yet, so checking the merged state here would just compare our optimism
+  // against itself and always conclude "already done," silently dropping
+  // the retry without ever actually sending it.
+  function retryPendingWriteIfStale(rawServerData){
+    if (!pendingWrite) return;
+    var teams = (rawServerData && rawServerData.teams) || {};
+    var serverTeam = teams[pendingWrite.team];
+    var serverLevel = serverTeam ? serverTeam.level : 0;
+    if (serverLevel >= pendingWrite.targetLevel){
+      clearPendingWrite(); // this write (or an equivalent one from another device) already landed
+      return;
+    }
+    if (pendingWrite.type === "advance" && serverLevel !== pendingWrite.targetLevel - 1){
+      clearPendingWrite(); // state moved in a way this stale attempt can't safely resolve (e.g. a reset)
+      return;
+    }
+    sendPendingWrite();
+  }
+
+  seedOptimisticFromPending();
+
   // --- backend sync (Google Apps Script Web App over a Google Sheet) ---
 
   function mergeServerState(serverState){
     var merged = serverState && serverState.teams ? cloneState(serverState) : { teams: {} };
-    var myTeam = myTeamName();
-    if (myTeam && state.teams && state.teams[myTeam]){
-      var mine = state.teams[myTeam];
-      var theirs = merged.teams[myTeam];
-      if (!theirs || (theirs.level || 0) < (mine.level || 0)){
-        merged.teams[myTeam] = mine; // keep our optimistic update until the server catches up
+    if (pendingWrite && pendingWrite.team){
+      var team = pendingWrite.team;
+      var serverLevel = (merged.teams[team] && merged.teams[team].level) || 0;
+      if (serverLevel < pendingWrite.targetLevel && state.teams && state.teams[team]){
+        merged.teams[team] = state.teams[team]; // keep our optimistic overlay until the server catches up
       }
     }
     return merged;
   }
 
-  var hasRenderedFromServer = false;
+  var hasBooted = false;          // true once the very first fetchState() has settled, success or failure
+  var hasRenderedSuccessOnce = false; // true only once a fetchState() has actually SUCCEEDED and been rendered
 
   // Polling re-renders the whole page via innerHTML, which would blow away
   // (and on mobile, dismiss the keyboard for) an input the user is actively
@@ -312,25 +416,35 @@
   // team-select and puzzle-answer screens only ever show *this* team's own
   // progress anyway (never changes from another device), so there's no
   // reason for polling to touch that DOM at all — only the leaderboard
-  // actually needs to redraw on every tick. Always render once on the very
-  // first successful fetch so the initial "resume an existing team" chip
-  // list is populated.
-  function renderIfNeeded(){
-    if (!hasRenderedFromServer){ hasRenderedFromServer = true; render(); return; }
-    if (view === "leaderboard") render();
+  // actually needs to redraw on every tick.
+  function renderIfNeeded(isSuccess){
+    if (isSuccess){
+      if (!hasRenderedSuccessOnce){
+        // Render once on the very first success, however many failures came
+        // before it — this is what populates the "resume an existing team"
+        // chip list and clears any lingering connection-error message.
+        hasBooted = true; hasRenderedSuccessOnce = true; render();
+        return;
+      }
+      if (view === "leaderboard") render();
+      return;
+    }
+    if (!hasBooted){ hasBooted = true; render(); }
+    else if (view === "leaderboard") render();
   }
 
   function fetchState(){
     return fetch(API_URL, { method: "GET" })
       .then(function(res){ if (!res.ok) throw new Error("bad status"); return res.json(); })
       .then(function(data){
+        retryPendingWriteIfStale(data); // check against the raw response, before it's merged with our own overlay
         state = mergeServerState(data);
         apiStatus = "ready";
-        renderIfNeeded();
+        renderIfNeeded(true);
       })
       .catch(function(){
         apiStatus = "error";
-        renderIfNeeded();
+        renderIfNeeded(false);
       });
   }
 
@@ -345,29 +459,31 @@
     });
   }
 
+  // Self-rescheduling, not setInterval: the next poll is only scheduled once
+  // THIS one has fully settled (fetchState()'s internal .catch means its
+  // returned promise always fulfills, success or failure), so overlapping
+  // in-flight requests are impossible even if one poll runs long.
+  function pollLoop(){
+    fetchState().then(function(){ setTimeout(pollLoop, POLL_MS); });
+  }
+
   function startPolling(){
-    fetchState();
-    setInterval(fetchState, POLL_MS);
+    pollLoop();
+    if (pendingWrite) sendPendingWrite(); // don't wait a full poll cycle to retry a write left over from before a reload
   }
 
   // --- game actions ---
 
   function submitTeamName(name){
-    name = (name || "").trim().slice(0, 40);
+    name = normalizeTeamName(name);
     if (!name) return;
     setMyTeamName(name);
-    if (!(state.teams && state.teams[name])){
-      var newState = cloneState(state);
-      if (!newState.teams) newState.teams = {};
-      var history = [{level: 1, at: new Date().toISOString()}];
-      newState.teams[name] = { level: 1, history: history };
-      state = newState;
-      render();
-      postAction({ action: "upsert", team: name, level: 1, history: history })
-        .catch(function(){ window.__domiboLastError = "Couldn't save your team — check your connection and try again."; render(); });
-    } else {
-      render();
-    }
+    if (state.teams && state.teams[name]){ render(); return; } // already known locally, nothing to send
+    pendingWrite = { type: "create-team", team: name, targetLevel: 1 };
+    savePendingWrite(pendingWrite);
+    seedOptimisticFromPending();
+    render();
+    sendPendingWrite();
   }
 
   function submitAnswer(levelNum, raw){
@@ -385,23 +501,34 @@
       var t = getTeam(state, team);
       if (t.level !== levelNum){ render(); return; } // stale UI guard
       var toLevel = levelNum + 1;
-      var history = (t.history||[]).concat([{level: toLevel, at: new Date().toISOString()}]);
-      var newState = cloneState(state);
-      if (!newState.teams) newState.teams = {};
-      newState.teams[team] = { level: toLevel, history: history };
+      pendingWrite = { type: "advance", team: team, answer: norm, targetLevel: toLevel };
+      savePendingWrite(pendingWrite);
+      seedOptimisticFromPending();
       try { sessionStorage.setItem("domibo_pending", JSON.stringify({team: team, toLevel: toLevel})); } catch(e){}
-      state = newState;
       render();
-      postAction({ action: "upsert", team: team, level: toLevel, history: history })
-        .catch(function(){ window.__domiboLastError = "Saved locally, but couldn't sync to the leaderboard — check your connection."; render(); });
+      sendPendingWrite();
     });
   }
 
   function resetAll(){
-    state = { teams: {} };
-    clearMyTeamName();
-    render();
-    postAction({ action: "reset" }).then(fetchState).catch(function(){ fetchState(); });
+    var key = window.prompt("Facilitator PIN to reset all teams:");
+    if (key === null) return; // cancelled
+    postAction({ action: "reset", adminKey: key }).then(function(res){
+      if (res && res.ok){
+        state = { teams: {} };
+        clearMyTeamName();
+        clearPendingWrite();
+        try { sessionStorage.removeItem("domibo_pending"); } catch(e){}
+        render();
+        fetchState();
+      } else {
+        window.__domiboLastError = "Wrong PIN — reset cancelled.";
+        render();
+      }
+    }).catch(function(){
+      window.__domiboLastError = "Couldn't reach the server to reset — check your connection.";
+      render();
+    });
   }
 
   function fmtElapsed(iso){
@@ -542,7 +669,10 @@
         html += '</div></div>';
       });
     }
-    html += '<details class="admin"><summary>Facilitator tools</summary><button class="btn" data-action="arm-reset">Reset all teams</button></details>';
+    var armed = Date.now() < resetArmedUntil;
+    html += '<details class="admin"><summary>Facilitator tools</summary><button class="btn" data-action="arm-reset">' + (armed ? "Press again to confirm" : "Reset all teams") + '</button>';
+    if (window.__domiboLastError){ html += '<div class="feedback error">' + esc(window.__domiboLastError) + '</div>'; }
+    html += '</details>';
     html += '</div>';
     return html;
   }
@@ -553,7 +683,7 @@
     return "";
   }
 
-  var resetArmed = false;
+  var resetArmedUntil = 0;
 
   function render(){
     var team = myTeamName();
@@ -626,12 +756,12 @@
           view = view === "leaderboard" ? "auto" : "leaderboard";
           render();
         } else if (action === "arm-reset"){
-          if (!resetArmed){
-            resetArmed = true;
-            el.textContent = "Press again to confirm";
-            setTimeout(function(){ resetArmed = false; el.textContent = "Reset all teams"; }, 4000);
+          if (Date.now() >= resetArmedUntil){
+            resetArmedUntil = Date.now() + 4000;
+            render(); // reflect "armed" immediately — a poll-triggered render mid-window
+                      // recomputes from this same timestamp, so it can't silently un-arm
           } else {
-            resetArmed = false;
+            resetArmedUntil = 0;
             resetAll();
           }
         }
