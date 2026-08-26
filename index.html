@@ -92,6 +92,11 @@
   .console-head .lvtitle{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier2);}
   .briefing{font-size:15px;color:var(--ink);margin-bottom:16px;}
   .verse{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;margin-bottom:16px;padding:12px 14px;background:var(--surface-alt);border-left:3px solid var(--tier-color,var(--accent));border-radius:4px;}
+  .stepblock{font-family:'IBM Plex Mono',monospace;margin-bottom:20px;}
+  .stepheading{font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--tier-color,var(--accent));margin-bottom:10px;}
+  .stepintro{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px;}
+  .stepquote{font-size:13px;line-height:1.8;color:var(--ink);white-space:pre-line;padding-left:24px;margin-bottom:10px;}
+  .stepoutro{font-size:14px;line-height:1.6;color:var(--ink);}
 
   /* memo / physical-prop card */
   .memo{
@@ -251,7 +256,14 @@
     },
     3: {
       rank: "Senior", tier: 3, inputLabel: "11-Character Passcode",
-      briefing: "STEP 1 — Resolve the unknown 'X': I hide inside the word that means to labor for a wage, and again inside the word that means the room where such labor is done, and a third time inside the word that names the reason you gather here tonight. Three times I appear, three times unnoticed. Locate this letter on the 5×5 matrix at the wheel's center — that's your starting coordinate.",
+      steps: [
+        {
+          heading: "Resolve the unknown 'X'",
+          intro: "Identify your starting coordinate before touching the wheel:",
+          quote: "\"I hide inside the word that means to labor for a wage,\nand again inside the word that means the room where such labor is done,\nand a third time inside the word that names the reason you gather here tonight.\nThree times I appear, three times unnoticed.\"",
+          outro: "Locate this <b>letter</b> on the 5×5 Matrix at the wheel's center."
+        }
+      ],
       clues: [
         "<b>\"CLIENT TRUST\"</b> → windows 1, 2*, 3, 4",
         "<b>\"ALWAYS A WAY\"</b> → windows 5*, 6, 7",
@@ -598,6 +610,16 @@
   function renderLevelExtras(lvl, def){
     var html = "";
     if (def.verse) html += '<div class="verse">' + esc(def.verse) + '</div>';
+    if (def.steps){
+      def.steps.forEach(function(s, i){
+        html += '<div class="stepblock">';
+        html += '<div class="stepheading">Step ' + (i+1) + ': ' + esc(s.heading) + '</div>';
+        if (s.intro){ html += '<div class="stepintro">' + esc(s.intro) + '</div>'; }
+        if (s.quote){ html += '<div class="stepquote">' + esc(s.quote) + '</div>'; }
+        if (s.outro){ html += '<div class="stepoutro">' + s.outro + '</div>'; }
+        html += '</div>';
+      });
+    }
     if (def.grid){
       html += '<div class="grid6">';
       def.grid.forEach(function(row){ row.forEach(function(c){ html += '<div class="cell">' + esc(c) + '</div>'; }); });
@@ -617,7 +639,7 @@
     var err = window.__domiboLastError;
     var html = '<div class="console" style="--tier-color:' + tierColorVar(def.tier) + '">';
     html += '<div class="console-head center"><span class="lvtitle">LV' + levelNum + ' Terminal: ' + esc(def.rank) + '</span></div>';
-    html += '<div class="briefing">' + esc(def.briefing) + '</div>';
+    if (def.briefing){ html += '<div class="briefing">' + esc(def.briefing) + '</div>'; }
     html += renderLevelExtras(levelNum, def);
     html += '<div class="field"><label>' + esc(def.inputLabel) + '</label><div class="row"><input type="text" id="answer-input" autocomplete="off" autocapitalize="characters" placeholder="ENTER CODE"><button class="btn" data-action="submit-answer" data-level="' + levelNum + '" ' + (busy?'disabled':'') + '>' + (busy ? "Checking…" : "Submit") + '</button></div></div>';
     if (err){ html += '<div class="feedback error">' + esc(err) + '</div>'; }
