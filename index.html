@@ -264,7 +264,7 @@
         {
           heading: "Resolve the unknown 'X'",
           intro: "Identify your starting coordinate before touching the wheel:",
-          quote: "\"I hide inside the word that means to labor for a wage,\nand again inside the word that means the room where such labor is done,\nand a third time inside the word that names the reason you gather here tonight.\nThree times I appear, three times unnoticed.\nI am the 'X' that has been watching you all along.\"",
+          quote: "\"I hide inside the word that means to labor for a wage, and again inside the word that means the room where such labor is done, and a third time inside the word that names the reason you gather here tonight. Three times I appear, three times unnoticed.\nI am the 'X' that has been watching you all along.\"",
           outro: "Locate this <b>letter</b> on the 5×5 Matrix at the wheel's center."
         },
         {
@@ -401,7 +401,7 @@
         // this team's confirmed result (don't lose it), just don't touch the
         // pendingWrite slot/localStorage, which now belongs to that other write.
         if (res && res.ok) applyServerResult(team, res);
-        render();
+        backgroundRender();
         return;
       }
       if (res && res.ok){
@@ -414,8 +414,21 @@
         clearPendingWrite();
       }
       // any other failure: leave pendingWrite in place, the next poll retries it
-      render();
+      backgroundRender();
     }).catch(function(){ pendingWriteInFlight = false; });
+  }
+
+  // A pending-write confirmation/retry resolves on its own schedule (an Apps
+  // Script round trip, ~2-4s), independent of anything the player is doing
+  // right now — including possibly typing into the *next* level's answer
+  // field, since the optimistic UI already moved them on before the server
+  // confirmed. Re-rendering unconditionally here would blow away that input
+  // (and dismiss the keyboard on mobile) the same way an unguarded poll
+  // render would — see renderIfNeeded's comment. The team-select/answer
+  // screens already reflect the optimistic outcome; only the leaderboard
+  // needs this kind of background update reflected live.
+  function backgroundRender(){
+    if (view === "leaderboard") render();
   }
 
   // Called after every successful poll with the RAW (pre-merge) server
@@ -565,6 +578,7 @@
   function resetAll(){
     var key = window.prompt("Facilitator PIN to reset all teams:");
     if (key === null) return; // cancelled
+    window.__domiboAdminError = null;
     postAction({ action: "reset", adminKey: key }).then(function(res){
       if (res && res.ok){
         state = { teams: {} };
@@ -574,11 +588,11 @@
         render();
         fetchState();
       } else {
-        window.__domiboLastError = "Wrong PIN — reset cancelled.";
+        window.__domiboAdminError = "Wrong PIN — reset cancelled.";
         render();
       }
     }).catch(function(){
-      window.__domiboLastError = "Couldn't reach the server to reset — check your connection.";
+      window.__domiboAdminError = "Couldn't reach the server to reset — check your connection.";
       render();
     });
   }
@@ -745,7 +759,7 @@
     }
     var armed = Date.now() < resetArmedUntil;
     html += '<details class="admin"><summary>Facilitator tools</summary><button class="btn" data-action="arm-reset">' + (armed ? "Press again to confirm" : "Reset all teams") + '</button>';
-    if (window.__domiboLastError){ html += '<div class="feedback error">' + esc(window.__domiboLastError) + '</div>'; }
+    if (window.__domiboAdminError){ html += '<div class="feedback error">' + esc(window.__domiboAdminError) + '</div>'; }
     html += '</details>';
     html += '</div>';
     return html;
@@ -814,9 +828,11 @@
           var input = document.getElementById("team-input");
           submitTeamName(input ? input.value : "");
         } else if (action === "resume-team"){
+          window.__domiboLastError = null;
           setMyTeamName(el.getAttribute("data-team"));
           render();
         } else if (action === "switch-team"){
+          window.__domiboLastError = null;
           clearMyTeamName();
           try { sessionStorage.removeItem("domibo_pending"); } catch(e){}
           render();
@@ -824,9 +840,11 @@
           var ai = document.getElementById("answer-input");
           submitAnswer(parseInt(el.getAttribute("data-level"), 10), ai ? ai.value : "");
         } else if (action === "continue-level"){
+          window.__domiboLastError = null;
           try { sessionStorage.removeItem("domibo_pending"); } catch(e){}
           render();
         } else if (action === "toggle-leaderboard"){
+          window.__domiboLastError = null;
           view = view === "leaderboard" ? "auto" : "leaderboard";
           render();
         } else if (action === "arm-reset"){
