@@ -168,7 +168,7 @@
   @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
   @media (prefers-reduced-motion: reduce){.feedback.error{animation:none;}}
 
-  .footnote{margin-top:16px;font-size:12.5px;color:var(--ink-dim);font-style:italic;}
+  .footnote{font-size:12.5px;color:var(--ink-dim);font-style:italic;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:0 0 16px;}
 
   /* team select */
   .teamcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;text-align:center;}
@@ -237,7 +237,7 @@
 
   var LEVELS = {
     1: {
-      rank: "Intern", tier: 1, inputLabel: "Override Code",
+      rank: "Intern", tier: 1, inputLabel: "8-Character Passcode",
       briefing: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
       footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
       bridgeBadge: "Probation passed",
@@ -666,10 +666,10 @@
     var html = '<div class="console" style="--tier-color:' + tierColorVar(def.tier) + '">';
     html += '<div class="console-head center"><span class="lvtitle">LV' + levelNum + ' Terminal: ' + esc(def.rank) + '</span></div>';
     if (def.briefing){ html += '<div class="briefing">' + esc(def.briefing) + '</div>'; }
+    if (def.footnote){ html += '<div class="footnote">' + esc(def.footnote) + '</div>'; }
     html += renderLevelExtras(levelNum, def);
     html += '<div class="field"><label>' + esc(def.inputLabel) + '</label><div class="row"><input type="text" id="answer-input" autocomplete="off" autocapitalize="characters" placeholder="ENTER CODE"><button class="btn" data-action="submit-answer" data-level="' + levelNum + '" ' + (busy?'disabled':'') + '>' + (busy ? "Checking…" : "Submit") + '</button></div></div>';
     if (err){ html += '<div class="feedback error">' + esc(err) + '</div>'; }
-    if (def.footnote){ html += '<div class="footnote">' + esc(def.footnote) + '</div>'; }
     html += '</div>';
     return html;
   }
