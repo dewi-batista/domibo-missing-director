@@ -198,7 +198,7 @@
   }
   .bridge h2{font-family:'IBM Plex Mono',monospace;font-size:17px;margin-bottom:12px;}
   .bridge p{color:var(--ink);font-size:14.5px;margin-bottom:20px;text-align:left;}
-  .bridge p:last-child{margin-bottom:0;}
+  .bridge > *:last-child{margin-bottom:0;}
   .prize{background:color-mix(in srgb, var(--gold) 16%, transparent);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:16px;}
 
   /* leaderboard */
@@ -721,8 +721,8 @@
     if (isFinal && isFirstToFinish(team)){
       html += '<div class="prize">🏆 You’re the first team to finish — find Stormy to claim your prize!</div>';
     }
-    html += '<p>' + esc(def.bridgeBody) + '</p>';
     if (!isFinal){
+      html += '<p>' + esc(def.bridgeBody) + '</p>';
       html += '<button class="btn" data-action="continue-level" data-level="' + (levelJustSolved+1) + '">Continue →</button>';
     }
     html += '</div>';
