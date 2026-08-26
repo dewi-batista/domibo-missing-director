@@ -722,8 +722,6 @@
     html += '<p>' + esc(def.bridgeBody) + '</p>';
     if (!isFinal){
       html += '<button class="btn" data-action="continue-level" data-level="' + (levelJustSolved+1) + '">Continue →</button>';
-    } else {
-      html += '<button class="iconbtn" data-action="toggle-leaderboard">View leaderboard</button>';
     }
     html += '</div>';
     return html;
