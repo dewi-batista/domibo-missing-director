@@ -123,6 +123,9 @@
   }
 
   .rule{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:10px 0 16px;color:var(--ink);}
+  .noticebox{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:10px 0 16px;color:var(--ink);line-height:1.8;}
+  .noticehead{font-weight:700;letter-spacing:.05em;margin-bottom:4px;}
+  .noticeitem{padding-left:4px;}
 
   /* input */
   .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px;}
@@ -274,7 +277,13 @@
           ]
         }
       ],
-      rule: "Signal modifier — blue window: data stream normal. Red window (marked *): data stream inverted. Turn the wheel through each core value in sequence and read off the windows.",
+      notice: {
+        heading: "Signal modifier",
+        items: [
+          { term: "BLUE", desc: "Data stream is normal" },
+          { term: "RED(*)", desc: "Data stream is inverted" }
+        ]
+      },
       footnote: "",
       bridgeBadge: "Senior clearance verified",
       bridgeTitle: "You've cracked the system",
@@ -629,6 +638,13 @@
         if (s.outro){ html += '<div class="stepoutro">' + s.outro + '</div>'; }
         html += '</div>';
       });
+    }
+    if (def.notice){
+      html += '<div class="noticebox"><div class="noticehead">⚡ ' + esc(def.notice.heading).toUpperCase() + ':</div>';
+      def.notice.items.forEach(function(it){
+        html += '<div class="noticeitem">- <b>' + esc(it.term) + '</b>: ' + esc(it.desc) + '</div>';
+      });
+      html += '</div>';
     }
     if (def.grid){
       html += '<div class="grid6">';
