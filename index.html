@@ -96,6 +96,7 @@
   .stepheading{font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--tier-color,var(--accent));margin-bottom:10px;}
   .stepintro{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:10px;}
   .stepquote{font-size:13px;line-height:1.8;color:var(--ink);white-space:pre-line;padding-left:24px;margin-bottom:10px;}
+  .steplist{font-size:13px;line-height:1.8;color:var(--ink);margin-bottom:10px;}
   .stepoutro{font-size:14px;line-height:1.6;color:var(--ink);}
 
   /* memo / physical-prop card */
@@ -262,12 +263,16 @@
           intro: "Identify your starting coordinate before touching the wheel:",
           quote: "\"I hide inside the word that means to labor for a wage,\nand again inside the word that means the room where such labor is done,\nand a third time inside the word that names the reason you gather here tonight.\nThree times I appear, three times unnoticed.\"",
           outro: "Locate this <b>letter</b> on the 5×5 Matrix at the wheel's center."
+        },
+        {
+          heading: "Align the three core values to find the code",
+          intro: "Turn the wheel accordingly to each core value in sequence and gather the windows:",
+          list: [
+            "<b>\"CLIENT TRUST\"</b> ==&gt; 1, 2*, 3, 4",
+            "<b>\"ALWAYS A WAY\"</b> ==&gt; 5*, 6, 7",
+            "<b>\"WE LEARN EVERYDAY\"</b> ==&gt; 8, 9*, 10"
+          ]
         }
-      ],
-      clues: [
-        "<b>\"CLIENT TRUST\"</b> → windows 1, 2*, 3, 4",
-        "<b>\"ALWAYS A WAY\"</b> → windows 5*, 6, 7",
-        "<b>\"WE LEARN EVERYDAY\"</b> → windows 8, 9*, 10"
       ],
       rule: "Signal modifier — blue window: data stream normal. Red window (marked *): data stream inverted. Turn the wheel through each core value in sequence and read off the windows.",
       footnote: "",
@@ -616,6 +621,11 @@
         html += '<div class="stepheading">Step ' + (i+1) + ': ' + esc(s.heading) + '</div>';
         if (s.intro){ html += '<div class="stepintro">' + esc(s.intro) + '</div>'; }
         if (s.quote){ html += '<div class="stepquote">' + esc(s.quote) + '</div>'; }
+        if (s.list){
+          html += '<div class="steplist">';
+          s.list.forEach(function(item, idx){ html += '<div class="stepitem">' + (idx+1) + '. ' + item + '</div>'; });
+          html += '</div>';
+        }
         if (s.outro){ html += '<div class="stepoutro">' + s.outro + '</div>'; }
         html += '</div>';
       });
