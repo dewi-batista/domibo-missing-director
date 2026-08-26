@@ -126,6 +126,12 @@
   .noticebox{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:10px 0 16px;color:var(--ink);line-height:1.8;}
   .noticehead{font-weight:700;letter-spacing:.05em;margin-bottom:4px;}
   .noticeitem{padding-left:4px;}
+  .decryptbox{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface-alt);border-radius:4px;padding:12px 14px;margin:10px 0 16px;color:var(--ink);}
+  .decrypt-rule{border-top:1px dashed var(--border);margin:8px 0;}
+  .decrypt-rule:first-child{margin-top:0;}
+  .decrypt-heading{font-weight:700;letter-spacing:.05em;text-align:center;}
+  .decrypt-list{margin:8px 0 0;padding-left:20px;line-height:1.8;}
+  .decrypt-list li{margin-bottom:2px;}
 
   /* input */
   .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px;}
@@ -293,6 +299,14 @@
     4: {
       rank: "Director", tier: 4, inputLabel: "54-Character Passcode (including spaces)",
       verse: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
+      decrypt: {
+        heading: "Decryption",
+        items: [
+          "You have <b>6 clues</b> in total to retrieved",
+          "Find the Cipher Key & the Hint Sheet",
+          "The Director's location will be revealed once all collected characters are mapped"
+        ]
+      },
       footnote: "",
       bridgeBadge: "Case closed",
       bridgeTitle: "You've found the Missing Director",
@@ -642,6 +656,11 @@
   function renderLevelExtras(lvl, def){
     var html = "";
     if (def.verse) html += '<div class="verse">' + esc(def.verse) + '</div>';
+    if (def.decrypt){
+      html += '<div class="decryptbox"><div class="decrypt-rule"></div><div class="decrypt-heading">' + esc(def.decrypt.heading).toUpperCase() + '</div><div class="decrypt-rule"></div><ol class="decrypt-list">';
+      def.decrypt.items.forEach(function(item){ html += '<li>' + item + '</li>'; });
+      html += '</ol></div>';
+    }
     if (def.steps){
       def.steps.forEach(function(s, i){
         html += '<div class="stepblock">';
