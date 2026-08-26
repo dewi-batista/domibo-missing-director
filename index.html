@@ -254,12 +254,21 @@
     2: {
       rank: "Junior", tier: 2, inputLabel: "4-Character Passcode",
       verse: "Seek the sacred corners where productivity goes to replenish when the afternoon slump hits - the ultimate battleground where healthy options and guilty pleasures live side by side.",
-      clues: [
-        "Google Chat team syncs happen <b>after</b> checking staffing assignments on Artefactory.",
-        "Submitting timesheets on Everwin is <b>always the final step</b> before the weekend.",
-        "Booking time off on Simployer must happen <b>before</b> checking Artefactory."
+      steps: [
+        {
+          heading: "Workflow",
+          list: [
+            "<b>Google Chat</b> team syncs happen AFTER checking staffing assignments on <b>Artefactory</b>",
+            "Submitting timesheets on <b>Everwin</b> is ALWAYS the final step of the sequence before the weekend",
+            "Booking time off on <b>Simployer</b> must happen BEFORE checking <b>Artefactory</b>"
+          ]
+        },
+        {
+          heading: "Passcode Decoding",
+          intro: "For each app in the correct sequence, calculate its single passcode digit:",
+          outro: "[Passcode Digit = (Sum of Outer Digits) - (Sum of Inner Digits)]"
+        }
       ],
-      rule: "Passcode digit = (sum of the outer 2 digits) − (sum of the inner 2 digits), for each app's number in sequence.",
       footnote: "",
       bridgeBadge: "Senior promotion granted",
       bridgeTitle: "Spot on — 2017",
@@ -269,13 +278,13 @@
       rank: "Senior", tier: 3, inputLabel: "11-Character Passcode",
       steps: [
         {
-          heading: "Resolve the unknown 'X'",
+          heading: "Step 1: Resolve the unknown 'X'",
           intro: "Identify your starting coordinate before touching the wheel:",
           quote: "\"I hide inside the word that means to labor for a wage, and again inside the word that means the room where such labor is done, and a third time inside the word that names the reason you gather here tonight. Three times I appear, three times unnoticed.\nI am the 'X' that has been watching you all along.\"",
           outro: "Locate this <b>letter</b> on the 5×5 Matrix at the wheel's center."
         },
         {
-          heading: "Align the three core values to find the code",
+          heading: "Step 2: Align the three core values to find the code",
           intro: "Turn the wheel accordingly to each core value in sequence and gather the windows:",
           list: [
             "<b>\"CLIENT TRUST\"</b> ==&gt; 1, 2*, 3, 4",
@@ -664,7 +673,7 @@
     if (def.steps){
       def.steps.forEach(function(s, i){
         html += '<div class="stepblock">';
-        html += '<div class="stepheading">Step ' + (i+1) + ': ' + esc(s.heading) + '</div>';
+        html += '<div class="stepheading">' + esc(s.heading) + '</div>';
         if (s.intro){ html += '<div class="stepintro">' + esc(s.intro) + '</div>'; }
         if (s.quote){ html += '<div class="stepquote">' + esc(s.quote) + '</div>'; }
         if (s.list){
