@@ -52,14 +52,16 @@
   .wordmark small{display:block;font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;margin-top:2px;}
   .iconbtn{
     font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;
-    background:var(--surface);border:1px solid var(--border);color:var(--ink);
+    background:var(--surface);border:1px solid var(--accent);color:var(--accent-strong);
     padding:8px 12px;border-radius:6px;cursor:pointer;text-transform:uppercase;
-    transition:border-color .15s ease,color .15s ease,box-shadow .15s ease;
+    box-shadow:0 0 8px color-mix(in srgb, var(--accent) 25%, transparent);
+    transition:box-shadow .15s ease,filter .15s ease;
   }
   .iconbtn:hover,.iconbtn:active{
-    border-color:var(--accent);color:var(--accent-strong);
-    box-shadow:0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow:0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
+    filter:brightness(1.15);
   }
+  .iconbtn:active{filter:brightness(1.3);}
   .iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
   /* rank ladder */
@@ -134,14 +136,21 @@
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
   .btn.secondary{background:transparent;border:1.5px solid var(--border);color:var(--ink);}
-  .btn:not(:disabled):hover,.btn:not(:disabled):active{
+  /* Lit by default whenever a button is actually clickable */
+  .btn:not(:disabled){
     filter:brightness(1.15);
-    box-shadow:0 0 0 3px color-mix(in srgb, var(--tier-color,var(--accent)) 25%, transparent),0 0 12px color-mix(in srgb, var(--tier-color,var(--accent)) 40%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--tier-color,var(--accent)) 20%, transparent),0 0 10px color-mix(in srgb, var(--tier-color,var(--accent)) 35%, transparent);
   }
-  .btn:not(:disabled):active{filter:brightness(1.25);}
-  .row:has(input[type=text]:not(:placeholder-shown)) .btn:not(:disabled){
-    filter:brightness(1.2);
-    box-shadow:0 0 0 3px color-mix(in srgb, var(--tier-color,var(--accent)) 30%, transparent),0 0 14px color-mix(in srgb, var(--tier-color,var(--accent)) 50%, transparent);
+  .btn:not(:disabled):hover,.btn:not(:disabled):active{filter:brightness(1.3);}
+  .btn:not(:disabled):active{filter:brightness(1.4);}
+  /* Exception: a submit-style button paired with an empty text field has nothing to act
+     on yet, so it stays unlit until something is typed. */
+  .row:has(input[type=text]:placeholder-shown) .btn:not(:disabled){
+    filter:none;box-shadow:none;
+  }
+  .row:has(input[type=text]:placeholder-shown) .btn:not(:disabled):hover,
+  .row:has(input[type=text]:placeholder-shown) .btn:not(:disabled):active{
+    filter:brightness(1.1);
   }
 
   .feedback{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:10px 12px;border-radius:6px;}
@@ -161,10 +170,11 @@
   .chiplist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
   .chip{
     font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--surface-alt);
-    border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--ink);
-    transition:border-color .15s ease,box-shadow .15s ease;
+    border:1px solid var(--accent);border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--ink);
+    box-shadow:0 0 6px color-mix(in srgb, var(--accent) 20%, transparent);
+    transition:box-shadow .15s ease,filter .15s ease;
   }
-  .chip:hover,.chip:active{border-color:var(--accent);box-shadow:0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);}
+  .chip:hover,.chip:active{box-shadow:0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);filter:brightness(1.1);}
 
   .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-bottom:14px;text-align:right;}
   .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;transition:filter .15s ease;}
@@ -194,7 +204,7 @@
 
   .admin{margin-top:26px;padding-top:16px;border-top:1px dashed var(--border);text-align:center;}
   .admin summary{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);cursor:pointer;letter-spacing:.05em;text-transform:uppercase;}
-  .admin .btn{margin-top:10px;background:var(--alert);}
+  .admin .btn{margin-top:10px;background:var(--alert);--tier-color:var(--alert);}
 
   .footer{text-align:center;margin-top:28px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase;}
   .status-pill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);text-align:center;margin-top:10px;}
@@ -219,11 +229,11 @@
   var LEVELS = {
     1: {
       rank: "Intern", tier: 1, inputLabel: "Override Code",
-      briefing: "The Director has vanished without a trace. To find him, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
+      briefing: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
       footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
       bridgeBadge: "Probation passed",
       bridgeTitle: "You are now an Intern Consultant",
-      bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show he recently audited four major company tools before disappearing. Seek the sacred corners where productivity goes to replenish when the afternoon slump hits — the ultimate battleground where healthy options and guilty pleasures live side by side."
+      bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show they recently audited four major company tools before disappearing. Seek the sacred corners where productivity goes to replenish when the afternoon slump hits — the ultimate battleground where healthy options and guilty pleasures live side by side."
     },
     2: {
       rank: "Junior", tier: 2, inputLabel: "4-Digit Passcode",
@@ -673,7 +683,7 @@
         return a.lastAt < b.lastAt ? -1 : 1;
       });
       rows.forEach(function(r){
-        var rankLabel = r.level >= 5 ? "Director — Found him!" : (LEVELS[r.level] ? LEVELS[r.level].rank : "Intern");
+        var rankLabel = r.level >= 5 ? "Director — Found them!" : (LEVELS[r.level] ? LEVELS[r.level].rank : "Intern");
         html += '<div class="lbrow">';
         html += '<div><div class="lbname">' + esc(r.name) + '</div><div class="lbrank">' + esc(rankLabel) + '</div></div>';
         html += '<div class="lbtime">' + (r.lastAt ? fmtElapsed(r.lastAt) : "—") + '</div>';
