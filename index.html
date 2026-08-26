@@ -238,7 +238,7 @@
   var LEVELS = {
     1: {
       rank: "Intern", tier: 1, inputLabel: "9-Character Passcode",
-      briefing: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
+      verse: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
       footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
       bridgeBadge: "Probation passed",
       bridgeTitle: "You are now an Intern Consultant",
@@ -246,7 +246,7 @@
     },
     2: {
       rank: "Junior", tier: 2, inputLabel: "4-Digit Passcode",
-      briefing: "Seek the sacred corners where productivity goes to replenish when the afternoon slump hits - the ultimate battleground where healthy options and guilty pleasures live side by side.",
+      verse: "Seek the sacred corners where productivity goes to replenish when the afternoon slump hits - the ultimate battleground where healthy options and guilty pleasures live side by side.",
       clues: [
         "Google Chat team syncs happen <b>after</b> checking staffing assignments on Artefactory.",
         "Submitting timesheets on Everwin is <b>always the final step</b> before the weekend.",
@@ -681,10 +681,10 @@
     var def = LEVELS[levelNum];
     var err = window.__domiboLastError;
     var html = '<div class="console" style="--tier-color:' + tierColorVar(def.tier) + '">';
-    html += '<div class="console-head center"><span class="lvtitle">LV' + levelNum + ' Terminal: ' + esc(def.rank) + '</span></div>';
+    html += '<div class="console-head center"><span class="lvtitle">Level ' + levelNum + ': ' + esc(def.rank) + '</span></div>';
     if (def.briefing){ html += '<div class="briefing">' + esc(def.briefing) + '</div>'; }
-    if (def.footnote){ html += '<div class="footnote">' + esc(def.footnote) + '</div>'; }
     html += renderLevelExtras(levelNum, def);
+    if (def.footnote){ html += '<div class="footnote">' + esc(def.footnote) + '</div>'; }
     html += '<div class="field"><label>' + esc(def.inputLabel) + '</label><div class="row"><input type="text" id="answer-input" autocomplete="off" autocapitalize="characters" placeholder="ENTER CODE"><button class="btn" data-action="submit-answer" data-level="' + levelNum + '" ' + (busy?'disabled':'') + '>' + (busy ? "Checking…" : "Submit") + '</button></div></div>';
     if (err){ html += '<div class="feedback error">' + esc(err) + '</div>'; }
     html += '</div>';
