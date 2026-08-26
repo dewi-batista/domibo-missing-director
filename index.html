@@ -47,9 +47,9 @@
   .hidden{display:none !important;}
 
   /* header */
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
   .wordmark{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;letter-spacing:.06em;}
-  .wordmark small{display:block;font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;margin-top:2px;}
+  .topbar-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
   .iconbtn{
     font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;
     background:var(--surface);border:1px solid var(--accent);color:var(--accent-strong);
@@ -90,7 +90,7 @@
   .console-head.center{justify-content:center;}
   .console-head .status{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier-color,var(--accent));}
   .console-head .lvtitle{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier2);}
-  .briefing{font-size:15px;color:var(--ink);margin-bottom:16px;white-space:pre-line;}
+  .briefing{font-size:15px;color:var(--ink);margin-bottom:16px;}
   .verse{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;margin-bottom:16px;padding:12px 14px;background:var(--surface-alt);border-left:3px solid var(--tier-color,var(--accent));border-radius:4px;}
   .stepblock{font-family:'IBM Plex Mono',monospace;margin-bottom:20px;}
   .stepheading{font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--tier-color,var(--accent));margin-bottom:10px;}
@@ -185,7 +185,7 @@
   }
   .chip:hover,.chip:active{box-shadow:0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);filter:brightness(1.1);}
 
-  .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-bottom:14px;text-align:right;}
+  .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);text-align:right;}
   .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;transition:filter .15s ease;}
   .teamline button:hover,.teamline button:active{filter:brightness(1.3);}
 
@@ -291,7 +291,7 @@
     },
     4: {
       rank: "Director", tier: 4, inputLabel: "54-Character Passcode (including spaces)",
-      briefing: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
+      verse: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
       footnote: "",
       bridgeBadge: "Case closed",
       bridgeTitle: "You've found the Missing Director",
@@ -614,9 +614,13 @@
     return html;
   }
 
-  function renderTopbar(){
-    var html = '<div class="topbar"><div class="wordmark">THE MISSING DIRECTOR<small>Artefact Benelux · Promotion Assessment</small></div>';
-    html += '<button class="iconbtn" data-action="toggle-leaderboard">' + (view === "leaderboard" ? "Console" : "Leaderboard") + '</button></div>';
+  function renderTopbar(team){
+    var html = '<div class="topbar"><div class="wordmark">THE MISSING DIRECTOR</div>';
+    html += '<div class="topbar-right"><button class="iconbtn" data-action="toggle-leaderboard">' + (view === "leaderboard" ? "Console" : "Leaderboard") + '</button>';
+    if (team){
+      html += '<div class="teamline">Team: <b>' + esc(team) + '</b> · <button data-action="switch-team">switch</button></div>';
+    }
+    html += '</div></div>';
     return html;
   }
 
@@ -775,7 +779,7 @@
   function render(){
     var team = myTeamName();
     var html = "";
-    html += renderTopbar();
+    html += renderTopbar(view === "leaderboard" ? null : team);
 
     if (view === "leaderboard"){
       html += renderLeaderboard();
@@ -794,7 +798,6 @@
     }
 
     var t = getTeam(state, team);
-    html += '<div class="teamline">Team: <b>' + esc(team) + '</b> · <button data-action="switch-team">switch</button></div>';
     html += renderLadder(Math.min(t.level, 4));
 
     var pendingRaw = null;
