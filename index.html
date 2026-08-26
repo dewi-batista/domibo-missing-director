@@ -54,8 +54,12 @@
     font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;
     background:var(--surface);border:1px solid var(--border);color:var(--ink);
     padding:8px 12px;border-radius:6px;cursor:pointer;text-transform:uppercase;
+    transition:border-color .15s ease,color .15s ease,box-shadow .15s ease;
   }
-  .iconbtn:hover{border-color:var(--accent);color:var(--accent-strong);}
+  .iconbtn:hover,.iconbtn:active{
+    border-color:var(--accent);color:var(--accent-strong);
+    box-shadow:0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
   .iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
   /* rank ladder */
@@ -130,6 +134,11 @@
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
   .btn.secondary{background:transparent;border:1.5px solid var(--border);color:var(--ink);}
+  .btn:not(:disabled):hover,.btn:not(:disabled):active{
+    filter:brightness(1.15);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--tier-color,var(--accent)) 25%, transparent),0 0 12px color-mix(in srgb, var(--tier-color,var(--accent)) 40%, transparent);
+  }
+  .btn:not(:disabled):active{filter:brightness(1.25);}
   .row:has(input[type=text]:not(:placeholder-shown)) .btn:not(:disabled){
     filter:brightness(1.2);
     box-shadow:0 0 0 3px color-mix(in srgb, var(--tier-color,var(--accent)) 30%, transparent),0 0 14px color-mix(in srgb, var(--tier-color,var(--accent)) 50%, transparent);
@@ -153,11 +162,13 @@
   .chip{
     font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--surface-alt);
     border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--ink);
+    transition:border-color .15s ease,box-shadow .15s ease;
   }
-  .chip:hover{border-color:var(--accent);}
+  .chip:hover,.chip:active{border-color:var(--accent);box-shadow:0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);}
 
   .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-bottom:14px;text-align:right;}
-  .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;}
+  .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;transition:filter .15s ease;}
+  .teamline button:hover,.teamline button:active{filter:brightness(1.3);}
 
   /* bridge / final */
   .bridge{text-align:center;}
