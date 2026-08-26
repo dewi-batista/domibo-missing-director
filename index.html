@@ -81,8 +81,9 @@
     background:repeating-linear-gradient(0deg,rgba(0,0,0,var(--scan-op)) 0 1px,transparent 1px 3px);
   }
   .console-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:8px;flex-wrap:wrap;}
+  .console-head.center{justify-content:center;}
   .console-head .status{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier-color,var(--accent));}
-  .console-head .rank{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);}
+  .console-head .lvtitle{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--tier2);}
   .briefing{font-size:15px;color:var(--ink);margin-bottom:16px;}
   .verse{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-line;margin-bottom:16px;padding:12px 14px;background:var(--surface-alt);border-left:3px solid var(--tier-color,var(--accent));border-radius:4px;}
 
@@ -201,7 +202,7 @@
 
   var LEVELS = {
     1: {
-      rank: "Intern", tier: 1, status: "INTERN LEVEL — LOCKED", inputLabel: "Override Code",
+      rank: "Intern", tier: 1, inputLabel: "Override Code",
       briefing: "An urgent alert just hit the Director's terminal: he's vanished without a trace. Find the CONFIDENTIAL envelope hidden at his desk, lay its stencil over the grid below, and read what it reveals.",
       grid: [["A","R","K","P","T","L"],["X","3","Q","T","M","W"],["D","7","O","E","W","C"],["P","Z","Q","V","1","S"],["H","K","F","G","Q","Z"],["Y","2","P","K","5","0"]],
       footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
@@ -210,7 +211,7 @@
       bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show he recently audited four major company tools before disappearing. Seek the sacred corners where productivity goes to replenish when the afternoon slump hits — the ultimate battleground where healthy options and guilty pleasures live side by side."
     },
     2: {
-      rank: "Junior", tier: 2, status: "JUNIOR LEVEL — LOCKED", inputLabel: "4-Digit Passcode",
+      rank: "Junior", tier: 2, inputLabel: "4-Digit Passcode",
       briefing: "The snack drawer holds four company tools, each stamped with a hidden 4-digit number. Deduce the Director's weekly workflow order below, then apply the transformation rule to each app's number in that order.",
       clues: [
         "Google Chat team syncs happen <b>after</b> checking staffing assignments on Artefactory.",
@@ -224,7 +225,7 @@
       bridgeBody: "2017 is the year the international Artefact Group was created through the merger with Netbooster. You've proven your mastery over company history and daily workflows — workflows tamed, process aligned. You're officially Senior Rank. To reach the Senior Terminal, find this truth: wisdom is not written on walls — it rests quietly beneath the seat of the seeker."
     },
     3: {
-      rank: "Senior", tier: 3, status: "SENIOR LEVEL — LOCKED", inputLabel: "11-Character Passcode",
+      rank: "Senior", tier: 3, inputLabel: "11-Character Passcode",
       briefing: "STEP 1 — Resolve the unknown 'X': I hide inside the word that means to labor for a wage, and again inside the word that means the room where such labor is done, and a third time inside the word that names the reason you gather here tonight. Three times I appear, three times unnoticed. Locate this letter on the 5×5 matrix at the wheel's center — that's your starting coordinate.",
       clues: [
         "<b>\"CLIENT TRUST\"</b> → windows 1, 2*, 3, 4",
@@ -238,7 +239,7 @@
       bridgeBody: "You've claimed the codes. On paper, you're ready for Director — but rank isn't decrypted, it's defended. Return to where your very first door opened at Artefact, where every new face is welcomed before they belong. Find Stormy there. Only when Stormy signs off will the final Director hint be released."
     },
     4: {
-      rank: "Director", tier: 4, status: "C-SUITE — LOCKED", inputLabel: "Director Command",
+      rank: "Director", tier: 4, inputLabel: "Director Command",
       verse: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
       briefing: "Collect the six clue slips hidden in the meeting booths named above, then find the cipher key and worksheet tucked inside “It Ends with Us” on the office bookshelf. Map every collected character into position to reveal where the Director is hiding.",
       footnote: "",
@@ -590,7 +591,7 @@
     var def = LEVELS[levelNum];
     var err = window.__domiboLastError;
     var html = '<div class="console" style="--tier-color:' + tierColorVar(def.tier) + '">';
-    html += '<div class="console-head"><span class="status">' + def.status + '</span><span class="rank">RANK: ' + def.rank.toUpperCase() + '</span></div>';
+    html += '<div class="console-head center"><span class="lvtitle">LV' + levelNum + ' Terminal: ' + esc(def.rank) + '</span></div>';
     html += '<div class="briefing">' + esc(def.briefing) + '</div>';
     html += renderLevelExtras(levelNum, def);
     html += '<div class="field"><label>' + esc(def.inputLabel) + '</label><div class="row"><input type="text" id="answer-input" autocomplete="off" autocapitalize="characters" placeholder="ENTER CODE"><button class="btn" data-action="submit-answer" data-level="' + levelNum + '" ' + (busy?'disabled':'') + '>' + (busy ? "Checking…" : "Submit") + '</button></div></div>';
