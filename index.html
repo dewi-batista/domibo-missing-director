@@ -174,7 +174,7 @@
   @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
   @media (prefers-reduced-motion: reduce){.feedback.error{animation:none;}}
 
-  .footnote{font-size:12.5px;color:var(--ink-dim);font-style:italic;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:0 0 16px;}
+  .footnote{font-size:12.5px;color:var(--ink-dim);font-style:italic;background:var(--surface-alt);border-radius:4px;padding:10px 12px;margin:0 0 16px;text-align:center;}
 
   /* team select */
   .teamcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;text-align:center;}
@@ -206,6 +206,9 @@
   .bridge p{color:var(--ink);font-size:14.5px;margin-bottom:20px;text-align:left;}
   .bridge > *:last-child{margin-bottom:0;}
   .prize{background:color-mix(in srgb, var(--gold) 16%, transparent);border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:16px;}
+  .hl{background:color-mix(in srgb, var(--tier2) 30%, transparent);border-radius:3px;padding:0 2px;}
+  .alertbox{background:color-mix(in srgb, var(--alert) 14%, transparent);border:1px solid var(--alert);color:var(--alert);border-radius:6px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;margin-bottom:16px;text-align:center;}
+  .alertbox b{display:block;margin-bottom:4px;letter-spacing:.03em;}
 
   /* leaderboard */
   .lbrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
@@ -239,22 +242,22 @@
     1: "ec4d372a8d13184e79d303d9c207eed18816e770479c9956c392d5ebf0f29d67",
     2: "46e67c525617663b392a53c0e94ba79e62db62a851fb175ae87756d4e73c9718",
     3: "875d65840f6f360a64a737eb3c520a7e22bc1e3316ce5e61710b652bec16ec34",
-    4: "bcb64e9c3e5165e2c29d77fbfb133b5fc3e7d3e2be50f782769e5202db0be148"
+    4: "ac5e708e850d5360f0133e47d905a877a7f95fa6c637f4de40b7cb3ab48f91cf"
   };
 
   var LEVELS = {
     1: {
       rank: "Intern", tier: 1, inputLabel: "9-Character Passcode",
-      verse: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
+      briefing: "The Director has vanished without a trace. To find them, start where the numbers don't lie. Seek the preferred throne of the one who holds the keys to the treasure - stationed right beside the forgotten door that can no longer be opened.",
       grid: [["A","R","K","P","T","L"],["X","3","Q","T","M","W"],["D","7","O","E","W","C"],["P","Z","Q","V","1","S"],["H","K","F","G","Q","Z"],["Y","2","P","K","5","0"]],
       footnote: "Before moving forward in your career, always take two steps back to reflect on where you started.",
       bridgeBadge: "Probation passed",
       bridgeTitle: "You are now an Intern Consultant",
-      bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show they recently audited four major company tools before disappearing. Seek the sacred corners where productivity goes to replenish when the afternoon slump hits — the ultimate battleground where healthy options and guilty pleasures live side by side."
+      bridgeBody: "You've survived probation, but the Director is still nowhere in sight. Financial records show they recently audited four major company tools before disappearing. <span class=\"hl\">Seek the sacred corners where productivity goes to replenish when the afternoon slump hits</span> — the ultimate battleground where healthy options and guilty pleasures live side by side."
     },
     2: {
       rank: "Junior", tier: 2, inputLabel: "4-Character Passcode",
-      verse: "Seek the sacred corners where productivity goes to replenish when the afternoon slump hits - the ultimate battleground where healthy options and guilty pleasures live side by side.",
+      briefing: "Seek the sacred corners where productivity goes to replenish when the afternoon slump hits - the ultimate battleground where healthy options and guilty pleasures live side by side.",
       steps: [
         {
           heading: "Workflow",
@@ -273,7 +276,7 @@
       footnote: "",
       bridgeBadge: "Senior promotion granted",
       bridgeTitle: "Spot on — 2017",
-      bridgeBody: "2017 is the year the international Artefact Group was created through the merger with Netbooster. You've proven your mastery over company history and daily workflows — workflows tamed, process aligned. You're officially Senior Rank. To reach the Senior Terminal, find this truth: wisdom is not written on walls — it rests quietly beneath the seat of the seeker."
+      bridgeBody: "2017 is the year the international Artefact Group was created through the merger with Netbooster. You've proven your mastery over company history and daily workflows — workflows tamed, process aligned. You're officially Senior Rank. To reach the Senior Terminal, find this truth: <span class=\"hl\">Wisdom is not written on walls — it rests quietly beneath the seat of the seeker.</span>"
     },
     3: {
       rank: "Senior", tier: 3, inputLabel: "11-Character Passcode",
@@ -304,10 +307,10 @@
       footnote: "",
       bridgeBadge: "Senior clearance verified",
       bridgeTitle: "You've cracked the system",
-      bridgeBody: "You've claimed the codes. On paper, you're ready for Director — but rank isn't decrypted, it's defended. Return to where your very first door opened at Artefact, where every new face is welcomed before they belong. Find Stormy there. Only when Stormy signs off will the final Director hint be released."
+      bridgeBody: "You've claimed the codes. On paper, you're ready for Director — but rank isn't decrypted, it's defended. <b>Return to where your very first door opened at Artefact, where every new face is welcomed before they belong.</b> Find Stormy there. Only when Stormy signs off will the final Director hint be released."
     },
     4: {
-      rank: "Director", tier: 4, inputLabel: "54-Character Passcode (including spaces)",
+      rank: "Director", tier: 4, inputLabel: "57-Character Passcode (including spaces)",
       verse: "A trailblazer spirit is winning this race,\nWith a strong alliance to keep up the pace!\nWe show up with purpose and big work to do,\nSharing wisdom along with a bad joke or two.\nMake an impact so huge that the whole office cheers,\nKeep the movement alive through the ultimate years!\nTo finish the hunt, go where people read,\n\"It Ends with Us\" is the story you need.",
       decrypt: {
         heading: "Decryption",
@@ -751,7 +754,8 @@
       html += '<div class="prize">🏆 You’re the first team to finish — find Stormy to claim your prize!</div>';
     }
     if (!isFinal){
-      html += '<p>' + esc(def.bridgeBody) + '</p>';
+      html += '<p>' + def.bridgeBody + '</p>';
+      html += '<div class="alertbox"><b>⚠️ SYSTEM ALERT: IRREVERSIBLE PROGRESSION ⚠️</b>Only proceed if you have found the next physical hint. You cannot go back after pressing "Continue".</div>';
       html += '<button class="btn" data-action="continue-level" data-level="' + (levelJustSolved+1) + '">Continue →</button>';
     }
     html += '</div>';
