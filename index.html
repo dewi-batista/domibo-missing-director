@@ -49,7 +49,6 @@
   /* header */
   .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
   .wordmark{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;letter-spacing:.06em;}
-  .topbar-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
   .iconbtn{
     font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;
     background:var(--surface);border:1px solid var(--accent);color:var(--accent-strong);
@@ -185,7 +184,7 @@
   }
   .chip:hover,.chip:active{box-shadow:0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);filter:brightness(1.1);}
 
-  .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);text-align:right;}
+  .teamline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:4px;}
   .teamline button{background:none;border:none;color:var(--accent-strong);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;padding:0;transition:filter .15s ease;}
   .teamline button:hover,.teamline button:active{filter:brightness(1.3);}
 
@@ -615,12 +614,12 @@
   }
 
   function renderTopbar(team){
-    var html = '<div class="topbar"><div class="wordmark">THE MISSING DIRECTOR</div>';
-    html += '<div class="topbar-right"><button class="iconbtn" data-action="toggle-leaderboard">' + (view === "leaderboard" ? "Console" : "Leaderboard") + '</button>';
+    var html = '<div class="topbar"><div class="wordmark">THE MISSING DIRECTOR';
     if (team){
       html += '<div class="teamline">Team: <b>' + esc(team) + '</b> · <button data-action="switch-team">switch</button></div>';
     }
-    html += '</div></div>';
+    html += '</div>';
+    html += '<button class="iconbtn" data-action="toggle-leaderboard">' + (view === "leaderboard" ? "Console" : "Leaderboard") + '</button></div>';
     return html;
   }
 
