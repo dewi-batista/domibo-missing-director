@@ -581,6 +581,14 @@
   function submitAnswer(levelNum, raw){
     var team = myTeamName();
     if (!team || busy) return;
+    // A previous write for this team (create-team or advance) hasn't been
+    // confirmed by the server yet. Letting a second submit through here would
+    // overwrite the single global pendingWrite slot before the first one is
+    // even sent, so the server would end up checking this answer against
+    // whatever level it still thinks the team is on — a real "wrong answer"
+    // rejection that then wipes out the earlier, actually-correct progress.
+    // Blocking until the prior write settles (~1-4s) avoids that race.
+    if (pendingWrite && pendingWrite.team === team) return;
     busy = true; window.__domiboLastError = null; render();
     var norm = normalize(raw);
     sha256Hex(norm).then(function(hex){
