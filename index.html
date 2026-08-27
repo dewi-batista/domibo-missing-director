@@ -732,6 +732,19 @@
     return html;
   }
 
+  function firstFinisherName(){
+    var teams = state.teams || {};
+    var winner = null, winnerAt = null;
+    Object.keys(teams).forEach(function(name){
+      var t = teams[name];
+      if (!t || t.level < 5) return;
+      var at = null;
+      (t.history||[]).forEach(function(h){ if (h.level === 5) at = h.at; });
+      if (at && (!winnerAt || at < winnerAt)){ winner = name; winnerAt = at; }
+    });
+    return winner;
+  }
+
   function isFirstToFinish(team){
     var teams = state.teams || {};
     var myFinishAt = null;
@@ -760,6 +773,9 @@
     html += '<h2>' + esc(def.bridgeTitle) + '</h2>';
     if (isFinal && isFirstToFinish(team)){
       html += '<div class="prize" style="color:var(--ink)">Congrats! <span style="color:var(--gold)">You’re the first team to finish!</span> Please take a screenshot to show Stormy &amp; claim your prize!</div>';
+    } else if (isFinal){
+      var winner = firstFinisherName();
+      if (winner && winner !== team){ html += '<p style="text-align:center">' + esc(winner) + ' already finished first — nice work getting here too!</p>'; }
     }
     if (!isFinal){
       html += '<p>' + def.bridgeBody + '</p>';
